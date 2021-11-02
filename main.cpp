@@ -312,6 +312,154 @@ int zeroes (int base, int number) {
   return noz;
 }
 
+std::pair<double, double> get_args(size_t &index, std::string &arg){
+  std::string num;
+  size_t end_ind = index + 1;
+  for (; end_ind < arg.size(); end_ind++){
+    if (isalnum(arg.at(end_ind)) || (end_ind == index + 1 && arg.at(end_ind) == '-') || arg.at(end_ind) == '.'){
+      num += arg.at(end_ind);
+    } else {
+      break;
+    }
+  }
+  double right = std::stod(num, nullptr);
+  num.clear();
+  int st_ind = static_cast<int>(index) - 1;
+  for (; st_ind >= 0; st_ind--){
+    if (arg.at(st_ind) == '-') {
+      num += arg.at(st_ind);
+      st_ind--;
+      break;
+    } else if (isalnum(arg.at(st_ind)) || arg.at(st_ind) == '.') {
+      num += arg.at(st_ind);
+    } else {
+      break;
+    }
+  }
+  st_ind++;
+  std::reverse(num.begin(), num.end());
+  arg.erase(st_ind, static_cast<int>(end_ind) - st_ind);
+  double left = std::stod(num, nullptr);
+  index = st_ind;
+  return {left, right};
+}
+
+void calc_br(std::string &arg){
+  // Поиск умножения либо деления
+  while(true) {
+    auto dev = arg.find('/');
+    auto mul = arg.find('*');
+    if (dev != std::string::npos && mul != std::string::npos) {
+      if (dev < mul) {
+        std::pair<double, double> args;
+        args = get_args(dev, arg);
+        std::string res = std::to_string(args.first / args.second);
+        res.erase ( res.find_last_not_of('0') + 1, std::string::npos );
+        arg.insert(dev, res);
+      } else {
+        std::pair<double, double> args;
+        args = get_args(mul, arg);
+        std::string res = std::to_string(args.first * args.second);
+        res.erase ( res.find_last_not_of('0') + 1, std::string::npos );
+        arg.insert(mul, res);
+      }
+    } else if (dev != std::string::npos) {
+      std::pair<double, double> args;
+      args = get_args(dev, arg);
+      std::string res = std::to_string(args.first / args.second);
+      res.erase ( res.find_last_not_of('0') + 1, std::string::npos );
+      arg.insert(dev, res);
+    } else if (mul != std::string::npos) {
+      std::pair<double, double> args;
+      args = get_args(mul, arg);
+      std::string res = std::to_string(args.first * args.second);
+      res.erase ( res.find_last_not_of('0') + 1, std::string::npos );
+      arg.insert(mul, res);
+    } else {
+      break;
+    }
+  }
+
+  // Поиск сложения либо  вычитания
+  while (true){
+    auto sub = arg.find('-', 1);
+    auto add = arg.find('+');
+    if (sub != std::string::npos && add != std::string::npos){
+      if (sub < add){
+        std::pair<double, double> args;
+        args = get_args(sub, arg);
+        std::string res = std::to_string(args.first - args.second);
+        res.erase ( res.find_last_not_of('0') + 1, std::string::npos );
+        arg.insert(sub, res);
+      } else {
+        std::pair<double, double> args;
+        args = get_args(add, arg);
+        std::string res = std::to_string(args.first + args.second);
+        res.erase ( res.find_last_not_of('0') + 1, std::string::npos );
+        arg.insert(add, res);
+      }
+    } else if (sub != std::string::npos){
+      std::pair<double, double> args;
+      args = get_args(sub, arg);
+      std::string res = std::to_string(args.first - args.second);
+      res.erase ( res.find_last_not_of('0') + 1, std::string::npos );
+      arg.insert(sub, res);
+    } else if (add != std::string::npos) {
+      std::pair<double, double> args;
+      args = get_args(add, arg);
+      std::string res = std::to_string(args.first + args.second);
+      res.erase ( res.find_last_not_of('0') + 1, std::string::npos );
+      arg.insert(add, res);
+    } else {
+      break;
+    }
+  }
+}
+
+double calc(std::string expression) {
+  // Удаление пробелов
+  expression.erase(std::remove(expression.begin(), expression.end(), ' '), expression.end());
+
+  // Поиск скобок
+  while(true){
+    auto end_br = expression.find(')');
+    if (end_br != std::string::npos){
+      auto st_br = expression.rfind('(', end_br);
+      std::string arg = expression.substr(st_br + 1, end_br - st_br - 1);
+
+      calc_br(arg);
+
+      if (st_br != 0) {
+        if (expression.at(st_br - 1) == '-'){
+          if (arg.at(0) == '-') {
+            if (st_br != 1) {
+              if (isalnum(expression.at(st_br - 2)) || expression.at(st_br - 2) == '.'){
+                expression.at(st_br - 1) = '+';
+                arg.erase(0, 1);
+              } else {
+                expression.erase(st_br - 1, 1);
+                arg.erase(0, 1);
+                st_br--;
+                end_br--;
+              }
+            } else {
+              expression.erase(st_br - 1, 1);
+              arg.erase(0, 1);
+              st_br--;
+              end_br--;
+            }
+          }
+        }
+      }
+      expression.erase(st_br, end_br - st_br + 1);
+      expression.insert(st_br, arg);
+    } else {
+      calc_br(expression);
+      break;
+    }
+  }
+  return std::stod(expression, nullptr);
+}
 
 int main(int argc, char* argv[]) {
   {
@@ -364,7 +512,10 @@ int main(int argc, char* argv[]) {
     // Подсчет нулей в факториале
     std::cout << "Zeros in fact 10(2): " << zeroes(10, 2) << std::endl;
   }
-
+  {
+    // Калькулятор
+    std::cout << "calc: " << calc("(-(32 - 30) * 31 / (-40 * 2 / 4)) / 30") << std::endl;
+  }
 
   return 0;
 }
