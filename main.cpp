@@ -461,6 +461,14 @@ double calc(std::string expression) {
   return std::stod(expression, nullptr);
 }
 
+[[maybe_unused]] void revers(std::string &str){
+  auto size = str.size();
+  auto stop = (size / 2);
+  for (size_t i = 0; i < stop; i++){
+    std::swap(str.at(i), str.at(size - i - 1));
+  }
+}
+
 int main(int argc, char* argv[]) {
   {
     // Создание матриц
@@ -514,7 +522,7 @@ int main(int argc, char* argv[]) {
   }
   {
     // Калькулятор
-    std::cout << "calc: " << calc("(-(32 - 30) * 31 / (-40 * 2 / 4)) / 30") << std::endl;
+    std::cout << "calc: " << calc("(-(-32 - 30) * -31 / -(-40 * 2 / -4)) / - 30") << std::endl;
   }
 
   return 0;
