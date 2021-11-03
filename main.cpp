@@ -4,6 +4,54 @@
 #include <list>
 #include <array>
 
+
+// Optional
+std::ostream& operator<<(std::ostream &out, const std::vector<int> &data){
+  out << "vector<int>: [";
+  for (const auto &el : data){
+    out << " " << el << " ";
+  }
+  out << "]";
+  return out;
+}
+
+std::ostream& operator<<(std::ostream &out, const std::list<int> &data){
+  out << "list<int>: [";
+  for (const auto &el : data){
+    out << " " << el << " ";
+  }
+  out << "]";
+  return out;
+}
+
+std::ostream& operator<<(std::ostream &out, const std::vector<std::string> &data){
+  out << "vector<string>: [";
+  for (const auto &el : data){
+    out << " " << el << " ";
+  }
+  out << "]";
+  return out;
+}
+
+std::ostream& operator<<(std::ostream &out, const std::vector<std::vector<int>> &data){
+  out << std::endl;
+  out << "vector<vector<int>>: [";
+  size_t size = data.size();
+  for (size_t i = 0; i < size; i++){
+    if (i)
+      out << "                      ";
+    out << "[";
+    for (const auto &el : data.at(i))
+      out << " " << el << " ";
+    if (i + 1 != size)
+      out << "]" << std::endl;
+    else
+      out << "]]" << std::endl;
+  }
+  return out;
+}
+
+// Kata
 std::vector<std::vector<int>> multiplication_table(int n){
   std::vector<std::vector<int>> table;
   table.resize(n);
@@ -143,24 +191,6 @@ std::vector<int> race(int v1, int v2, int g){
   int h =  (time - sec - min) / 3600;
 
   return {h, min, sec};
-}
-
-std::ostream& operator<<(std::ostream &out, const std::vector<int> &data){
-  out << "vector<int>: [";
-  for (const auto &el : data){
-    out << " " << el << " ";
-  }
-  out << "]";
-  return out;
-}
-
-std::ostream& operator<<(std::ostream &out, const std::list<int> &data){
-  out << "list<int>: [";
-  for (const auto &el : data){
-    out << " " << el << " ";
-  }
-  out << "]";
-  return out;
 }
 
 int countSmileys(const std::vector<std::string>& arr) {
@@ -469,11 +499,19 @@ double calc(std::string expression) {
   }
 }
 
+std::vector<std::string> permutations(std::string s) {
+  std::vector<std::string> result;
+  std::sort(s.begin(), s.end());
+  do {
+    result.emplace_back(s);
+  } while(std::next_permutation(s.begin(), s.end()));
+  return result;
+}
+
 int main(int argc, char* argv[]) {
   {
     // Создание матриц
-    std::cout << "Multiplication table: " << std::endl;
-    show_matrix(multiplication_table(3));
+    std::cout << "Multiplication table: " << multiplication_table(3) << std::endl;
   }
 
   {
@@ -522,8 +560,11 @@ int main(int argc, char* argv[]) {
   }
   {
     // Калькулятор
-    std::cout << "calc: " << calc("(-(-32 - 30) * -31 / -(-40 * 2 / -4)) / - 30") << std::endl;
+    std::cout << "Calc: " << calc("(-(-32 - 30) * -31 / -(-40 * 2 / -4)) / - 30") << std::endl;
   }
-
+  {
+    // Перебор всех возможных последовательностей
+    std::cout << "Permutations: " << permutations("aabb") << std::endl;
+  }
   return 0;
 }
